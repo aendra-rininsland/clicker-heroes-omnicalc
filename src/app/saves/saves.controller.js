@@ -11,11 +11,7 @@ class SavesController {
     this.dialog = $mdDialog;
 
     // Load existing saves from localStorage.
-    this.saveKeys = this.storage.keys();
-    this.saves = [];
-    for (let save of this.saveKeys) {
-      this.saves.push(this.storage.get(save));
-    }
+    this.saves = this.storage.get('saves') || [];
   }
 
   /**
@@ -36,14 +32,23 @@ class SavesController {
   /**
    * Imports a game from a Base64 Clicker Heroes save game into local storage.
    * @param  {string} saveGameBase64 Base64 Clicker Heroes save game.
-   * @return {string|null}        LocalStorage key if successful, null if failure.
+   * @return {string|null}           Array index if successful, null if failure.
    */
   importSave(saveGameBase64) {
-    let i = this.storage.keys().length + 1;
+    let i = this.saves.length + 1;
+    let save = {
+      id: i,
+      timestamp: new Date(),
+      base64: saveGameBase64,
+      data: Object 
+    };
     let data = this.parseSave(saveGameBase64);
+
     if (data) {
-      this.storage.set('save_' + i, data);
-      return 'save_' + i;
+      save.data = data;
+      let index = this.saves.push(save);
+      this.storage.set('saves', this.saves);
+      return index;
     } else {
       return null;
     }
@@ -54,7 +59,11 @@ class SavesController {
    * @param  {string} saveKey localStorage key for save game.
    * @return {boolean}         True if key was removed, false if otherwise.
    */
-  deleteSave(saveKey) {
+  deleteSave(id) {
+    let updated = this.saves.filter((v) => {
+      return v !== id;
+    });
+
     return this.storage.remove(saveKey);
   }
 
