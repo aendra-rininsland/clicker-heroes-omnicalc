@@ -6,9 +6,11 @@ import runBlock from './index.run';
 import SavesController from './saves/saves.controller';
 import AncientsController from './ancients/ancients.controller';
 import GildingController from './gilding/gilding.controller';
+import NavbarDirective from '../app/components/navbar/navbar.directive';
+
 // import GithubContributorService from '../app/components/githubContributor/githubContributor.service';
 // import WebDevTecService from '../app/components/webDevTec/webDevTec.service';
-// import NavbarDirective from '../app/components/navbar/navbar.directive';
+
 // import MalarkeyDirective from '../app/components/malarkey/malarkey.directive';
 
 angular.module('omnicalc', [
@@ -35,6 +37,6 @@ angular.module('omnicalc', [
   // .service('webDevTec', WebDevTecService)
   .controller('SavesController', SavesController)
   .controller('AncientController', AncientsController)
-  .controller('GildingController', GildingController);
-  // .directive('acmeNavbar', () => new NavbarDirective())
+  .controller('GildingController', GildingController)
+  .directive('omnicalcNavbar', () => new NavbarDirective());
   // .directive('acmeMalarkey', () => new MalarkeyDirective(malarkey));

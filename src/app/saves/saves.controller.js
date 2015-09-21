@@ -1,17 +1,26 @@
 class SavesController {
-  constructor ($window, CryptoJS, localStorageService, $mdDialog, ANTI_CHEAT_CODE, SALT) {
+  constructor ($window, $rootScope, CryptoJS, localStorageService, $mdDialog, ANTI_CHEAT_CODE, SALT) {
     'ngInject';
     
     this.ANTI_CHEAT_CODE = ANTI_CHEAT_CODE;
     this.SALT = SALT;
     this.md5 = CryptoJS.MD5;
-    this.atob = $window.atob;
     this.JSON = $window.JSON;
     this.storage = localStorageService;
     this.dialog = $mdDialog;
+    this.selectedSave = $rootScope.selected;
+    
+    // For some reason, using these throws an Illegal Invocation error in Chrome.
+    // this.atob = $window.atob;
+    // this.btoa = $window.btoa;
 
     // Load existing saves from localStorage.
     this.saves = this.storage.get('saves') || [];
+    
+    // Show import dialog if no saves loaded.
+    if (!this.saves.length) {
+      this.showImportDialog();
+    }
   }
 
   /**
@@ -19,13 +28,26 @@ class SavesController {
    * @return {string|boolean} LocalStorage key if successful, null if not.
    */
   showImportDialog() {
+    var selectedSave = this.selectedSave;
+    
     this.dialog.show({
-      templateUrl: 'saves/saves.dialog.html',
-      controller: ($scope, $mdDialog) => {
-        $scope.watch('inputData', (oldVal, newVal) => {
-          $mdDialog.hide(this.importSave(newVal));
-        });
+      templateUrl: 'app/saves/saves.dialog.html',
+      controller: ($scope) => {
+        'ngInject';
+        
+        $scope.close = () => {
+          this.dialog.cancel();
+        };
+        
+        $scope.$watch('inputData', (save) => {
+          if (save) {
+            this.dialog.hide(this.importSave(save));
+          }
+        }).bind(this);
       }
+    })
+    .then(function(save){
+      selectedSave = save;
     });
   }
 
@@ -40,15 +62,15 @@ class SavesController {
       id: i,
       timestamp: new Date(),
       base64: saveGameBase64,
-      data: Object 
+      data: {}
     };
     let data = this.parseSave(saveGameBase64);
 
     if (data) {
       save.data = data;
-      let index = this.saves.push(save);
+      this.saves.push(save);
       this.storage.set('saves', this.saves);
-      return index;
+      return save;
     } else {
       return null;
     }
@@ -64,7 +86,7 @@ class SavesController {
       return v !== id;
     });
 
-    return this.storage.remove(saveKey);
+    return this.storage.set('saves', updated);
   }
 
   /**
@@ -76,17 +98,17 @@ class SavesController {
     let fragment, txt;
     if (!!~saveGameBase64.match(this.ANTI_CHEAT_CODE)) { // "!!~" means "not not -1".
       fragment = saveGameBase64.split(this.ANTI_CHEAT_CODE);
-      txt = '';
+      txt = String();
       for (var i = 0; i < fragment[0].length; i += 2) {
         txt += fragment[0][i];
       }
 
-      if (this.md5(txt + this.SALT) !== fragment[1]) {
+      if (this.md5(txt + this.SALT).toString() !== fragment[1]) {
   			console.log('Invalid save game.'); // TODO better exception handling.
   			return;
   		}
-
-      return this.JSON.parse(this.atob(txt));
+      
+      return window.JSON.parse(window.atob(txt));
     } else {
       return false;
     }
@@ -98,7 +120,17 @@ class SavesController {
    * @return {string}          Base64-encoded save game.
    */
   exportSave(saveGame) {
-    // TODO
+    let fragments = Array();
+    fragments[0] = window.bota(window.JSON.stringify(saveGame));
+    let txt = String();
+    
+    for (var i = fragments[0].length - 1; i >= 0 ; i -= 2) {
+      txt += fragments[0][i];
+    }
+    
+    fragments[1] = this.md5(txt + this.SALT);
+    
+    return fragments.join(this.ANTI_CHEAT_CODE);
   }
 
   // activate($timeout, webDevTec) {

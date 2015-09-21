@@ -1,12 +1,19 @@
-<md-content layout-padding>
-  <md-grid-list
-      md-cols-gt-md="12" md-cols-sm="3" md-cols-md="8"
-      md-row-height-gt-md="1:1" md-row-height="4:3"
-      md-gutter-gt-md="16px" md-gutter-gt-sm="8px" md-gutter="4px">
-    <md-grid-tile
-        ng-repeat="save in saves.saveGames"
-        md-colspan=""
-        md-rowspan="{{tile.rowspan}}">
-    </md-grid-tile>
-  </md-grid-list>
-</md-content>
+<header>
+  <omnicalc-navbar />
+</header>
+
+<section>
+  <md-content>
+    <md-grid-list
+        md-cols-gt-md="12" md-cols-sm="3" md-cols-md="8"
+        md-row-height-gt-md="1:1" md-row-height="4:3"
+        md-gutter-gt-md="16px" md-gutter-gt-sm="8px" md-gutter="4px">
+      <md-grid-tile
+          ng-repeat="save in saves.saves"
+          md-colspan="1"
+          md-rowspan="1">
+        <h1>{{save.id}}</h1>
+      </md-grid-tile>
+    </md-grid-list>
+  </md-content>  
+</section>
